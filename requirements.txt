@@ -4,4 +4,6 @@ black
 dask
 matplotlib
 pandas
-dask[distriburted]
+dask[all]
+dask[distributed]
+seaborn
