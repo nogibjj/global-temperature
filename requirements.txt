@@ -6,5 +6,6 @@ matplotlib
 pandas
 dask[all]
 dask[distributed]
+dask_ml
 seaborn
 kaggle
