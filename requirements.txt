@@ -1,5 +1,5 @@
 pytest
-pylink
+pylint
 black
 dask
 matplotlib
