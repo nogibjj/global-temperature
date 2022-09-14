@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """Building a click command line interface that 
 takes in a city and country and returns the linear regression 
 of the average temperature of the city on the year"""
