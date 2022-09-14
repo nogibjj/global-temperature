@@ -6,7 +6,6 @@ of the average temperature of the city on the year"""
 # import the dask libraries
 from dask.array import from_array
 import dask.dataframe as dd
-from dask.distributed import LocalCluster, Client
 from dask_ml.linear_model import LinearRegression
 import numpy as np
 import click
@@ -55,25 +54,23 @@ def linear_regression(ddf):
 @click.option("--country", default="United Kingdom", help="The country to analyze")
 @click.option("--year", default=2010, help="The year to predict")
 def main(city, country, year):
-    """Predict the average temperature of a city in a given year"""
-    # create a local cluster in a context manager
-    with LocalCluster() as cluster, Client(cluster) as client:
-        # load the data
-        ddf = load_major_city_data()
-        # query the data
-        df_city = query_major_city_data(city, country, ddf)
-        # run a linear regression
-        lr = linear_regression(df_city)
-        # construct a numpy array of the year
-        year_array = from_array(np.array([year]).reshape(-1, 1))
-        # predict the temperature for the year
-        temp = lr.predict(year_array).compute()
-        # print the temperature
-        print(
-            f"The predicted average temperature in {city}, {country} in {year} is {temp[0]:.1f} degrees Celsius"
-        )
+    # load the data
+    ddf = load_major_city_data()
+    # query the data
+    df_city = query_major_city_data(city, country, ddf)
+    # run a linear regression
+    lr = linear_regression(df_city)
+    # construct a numpy array of the year
+    year_array = from_array(np.array([year]).reshape(-1, 1))
+    # predict the temperature for the year
+    temp = lr.predict(year_array).compute()
+    # print the temperature
+    print(
+        f"The predicted average temperature in {city}, {country} in {year} is {temp[0]:.1f} degrees Celsius"
+    )
 
 
 # Run the cli
 if __name__ == "__main__":
+    # pylint: disable=no-value-for-parameter
     main()
