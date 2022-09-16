@@ -9,3 +9,4 @@ dask[distributed]
 dask_ml
 seaborn
 kaggle
+fastparquet

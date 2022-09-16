@@ -6,37 +6,23 @@ of the average temperature of the city on the year"""
 
 
 # import the dask libraries
-import zipfile
 import numpy as np
 import click
 import dask.dataframe as dd
-import os.path
+import glob
 from dask.array import from_array
 from dask_ml.linear_model import LinearRegression
-from kaggle.api.kaggle_api_extended import KaggleApi
 
 # Create a function that loads in the MajorCity Data and Cleans it
 def load_city_data():
     """Load the City Data and Clean it"""
     # check if the city file is in the current directory
-    if os.path.isfile("GlobalLandTemperaturesByCity.csv"):
-        # read the data into a dask dataframe
-        ddf = dd.read_csv("GlobalLandTemperaturesByCity.csv")
+    parquet_path = glob.glob("raw_data/part*.parquet")
+    # import the city file using read_parquet
+    if len(parquet_path) > 0:
+        ddf = dd.read_parquet(parquet_path)
     else:
-        # create a kaggle api object
-        api = KaggleApi()
-        # authenticate with kaggle
-        api.authenticate()
-        # download the data
-        api.dataset_download_file(
-            "berkeleyearth/climate-change-earth-surface-temperature-data",
-            "GlobalLandTemperaturesByCity.csv",
-        )
-        # unzip the data
-        with zipfile.ZipFile("GlobalLandTemperaturesByCity.csv.zip", "r") as zip_ref:
-            zip_ref.extractall()
-        # read the data into a dask dataframe
-        ddf = dd.read_csv("GlobalLandTemperaturesByCity.csv")
+        raise FileNotFoundError("The parquet file is not in the raw_data directory")
     # drop the rows with missing values
     ddf = ddf.dropna()
     # Turn the dt column into a datetime object
@@ -80,7 +66,7 @@ def linear_regression(ddf):
 @click.option(
     "--fahrenheit", default=False, help="Return the temperature in Fahrenheit"
 )
-def main(city, country, year, fareinheit):
+def main(city, country, year, fahrenheit):
     """Main function that runs the click command"""
     # load the data
     ddf = load_city_data()
@@ -91,7 +77,7 @@ def main(city, country, year, fareinheit):
     # construct a numpy array of the year
     year_array = from_array(np.array([year]).reshape(-1, 1))
     # predict the temperature for the year
-    if fareinheit:
+    if fahrenheit:
         temp = lr.predict(year_array) * 9 / 5 + 32
         print(
             f"The predicted average temperature in {city}, {country} in {year} is {temp.compute()[0]:.1f} degrees Fareinheit."
