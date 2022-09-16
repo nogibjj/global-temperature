@@ -93,12 +93,15 @@ def main(city, country, year, fareinheit):
     # predict the temperature for the year
     if fareinheit:
         temp = lr.predict(year_array) * 9 / 5 + 32
+        print(
+            f"The predicted average temperature in {city}, {country} in {year} is {temp.compute()[0]:.1f} degrees Fareinheit."
+        )
     else:
         temp = lr.predict(year_array)
-    # print the temperature
-    print(
-        f"The predicted average temperature in {city}, {country} in {year} is {temp.compute()[0]:.1f} degrees Celsius."
-    )
+        # print the temperature
+        print(
+            f"The predicted average temperature in {city}, {country} in {year} is {temp.compute()[0]:.1f} degrees Celsius."
+        )
 
 
 # Run the cli
