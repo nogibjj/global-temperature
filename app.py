@@ -42,46 +42,43 @@ def load_city_data():
 
 
 data_load_state = st.text("Loading data...")
-data = load_city_data()
+df = load_city_data()
 data_load_state.text("Done! (using st.cache)")
 
 
 st.subheader("Raw data")
-st.write(data.head())
+st.write(df.head())
 
 st.subheader("""A look at all the cities in the data""")
 # get the unique cities in the dataframe and cache the data
 @st.cache
-def get_cities(data):
+def get_cities(data_frame):
     # dropping duplicates
-    cities_unique = data.drop_duplicates(subset=["City", "Country"])
+    cities_unique = data_frame.drop_duplicates(subset=["City", "Country"])
     # extract the city and country columns
-    cities_countries = cities_unique["City"] + ", " + cities_unique["Country"]
-    cities_countries = cities_countries.reset_index(drop=True).compute()
+    cities = cities_unique["City"] + ", " + cities_unique["Country"]
+    cities = cities.reset_index(drop=True).compute()
     cities_unique = cities_unique.rename(
         columns={"Latitude": "lat", "Longitude": "lon"}
     )
-    latlon = cities_unique[["lat", "lon"]].reset_index(drop=True)
-    latlon = latlon.compute()
-    return latlon, cities_countries
+    lat_lon = cities_unique[["lat", "lon"]].reset_index(drop=True).compute()
+    return lat_lon, cities
 
 
-latlon, cities_countries = get_cities(data)
+latlon, cities_countries = get_cities(df)
 
 # clean the dataframe to get their longitudes and lattitudes
-df = pd.DataFrame(np.empty((len(latlon), 2)), columns=["lat", "lon"])
+frame = pd.DataFrame(np.empty((len(latlon), 2)), columns=["lat", "lon"])
 for i in range(len(latlon)):
     if latlon.iloc[i, 0][-1] == "N":
-        df.iloc[i, 0] = float(latlon.iloc[i, 0][:-1])
-        pass
+        frame.iloc[i, 0] = float(latlon.iloc[i, 0][:-1])
     else:
-        df.iloc[i, 0] = float(latlon.iloc[i, 0][:-1]) * -1
+        frame.iloc[i, 0] = float(latlon.iloc[i, 0][:-1]) * -1
     if latlon.iloc[i, 1][-1] == "E":
-        df.iloc[i, 1] = float(latlon.iloc[i, 1][:-1])
-        pass
+        frame.iloc[i, 1] = float(latlon.iloc[i, 1][:-1])
     else:
-        df.iloc[i, 1] = float(latlon.iloc[i, 1][:-1]) * -1
-st.map(df)
+        frame.iloc[i, 1] = float(latlon.iloc[i, 1][:-1]) * -1
+st.map(frame)
 st.caption(
     """Each dot on the map displays all the cities in the data. The algorithm doesn't support lattitude and longitudes as entry yet."""
 )
@@ -103,55 +100,55 @@ with col1:
 with col2:
     year = st.slider("What year would you want forecasted?", 2022, 2300, 2050)
 
-city, country = city_option.split(", ")
+City, Country = city_option.split(", ")
 
 
 def query_city_data(city, country, ddf):
     """Query the City Data and return mean temperature of the city in each year"""
     # Filter the data to the city and country
-    df_city = ddf[(ddf["City"] == city) & (ddf["Country"] == country)]
+    city_dataframe = ddf[(ddf["City"] == city) & (ddf["Country"] == country)]
     # Group the data by year and calculate the mean temperature
-    df_city = df_city.groupby("year").mean().reset_index().compute()
+    city_dataframe = city_dataframe.groupby("year").mean().reset_index().compute()
     # Return the dataframe
-    return df_city
+    return city_dataframe
 
 
 # make the prediction
-def predict(city, country, year, fahrenheit):
+def predict(city, country, Year, Fahrenheit):
     """Main function that runs the linear regression"""
     # query the data
-    df_city = query_city_data(city, country, data)
+    df_city = query_city_data(city, country, df)
     # run a linear regression
     lr = LinearRegression()
     lr.fit(df_city[["year"]], df_city[["AverageTemperature"]])
     # construct a numpy array of the year
-    year_array = np.array([[year]])
+    year_array = np.array([[Year]])
     # predict the temperature for the year
-    if fahrenheit:
+    if Fahrenheit:
         temp = lr.predict(year_array) * 9 / 5 + 32
     else:
         temp = lr.predict(year_array)
     return temp, df_city
 
 
-temp, df_city = predict(city, country, year, fahrenheit)
-temp_1800 = df_city.iloc[0, 1]
-df_new = df_city[["year", "AverageTemperature"]].set_index("year")
+temperature, city_data = predict(City, Country, year, fahrenheit)
+temp_1800 = city_data.iloc[0, 1]
+df_new = city_data[["year", "AverageTemperature"]].set_index("year")
 
 col1, col2 = st.columns(2)
 with col1:
     if fahrenheit:
         temp_1800 = temp_1800 * 9 / 5 + 32
         st.metric(
-            f"Forecasted Average Temperature",
-            f"{int(temp):.2f}°F",
-            f"{int(temp - temp_1800):.2f}°F",
+            "Forecasted Average Temperature",
+            f"{int(temperature):.2f}°F",
+            f"{int(temperature - temp_1800):.2f}°F",
         )
     else:
         st.metric(
-            f"Forecasted Average Temperature",
-            f"{int(temp):.2f}°C",
-            f"{int(temp - temp_1800):.2f}°C",
+            "Forecasted Average Temperature",
+            f"{int(temperature):.2f}°C",
+            f"{int(temperature - temp_1800):.2f}°C",
         )
     st.caption(
         "The delta value signifies the change in annual temperature since year 1800."
