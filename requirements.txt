@@ -1,12 +1,11 @@
 pytest
 pylint
 black
-dask
 matplotlib
 pandas
 dask[all]
-dask[distributed]
 dask_ml
 seaborn
-kaggle
 fastparquet
+streamlit
+sklearn
