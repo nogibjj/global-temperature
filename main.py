@@ -17,7 +17,7 @@ from dask_ml.linear_model import LinearRegression
 def load_city_data():
     """Load the City Data and Clean it"""
     # check if the city file is in the current directory
-    parquet_path = glob.glob("raw_data/part*.parquet")
+    parquet_path = glob.glob("*.parquet")
     # import the city file using read_parquet
     if len(parquet_path) > 0:
         ddf = dd.read_parquet(parquet_path)
